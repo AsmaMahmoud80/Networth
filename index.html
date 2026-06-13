@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>صافي ثروتي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222637;
+    --border: #2e3347;
+    --accent: #6c8ef5;
+    --accent2: #f5a623;
+    --green: #3dd68c;
+    --red: #f56c6c;
+    --gold: #facc15;
+    --text: #e8eaf6;
+    --text2: #8892b0;
+    --radius: 16px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1d27 0%, #12152a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px);
+  }
+  .header h1 { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.5px; }
+  .header h1 span { color: var(--gold); }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+  /* Net worth hero */
+  .hero {
+    background: linear-gradient(135deg, #1e2440 0%, #141829 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 24px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .hero-label { font-size: 0.8rem; color: var(--text2); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .hero-value { font-size: 2.6rem; font-weight: 900; letter-spacing: -1px; }
+  .hero-value.pos { color: var(--green); }
+  .hero-value.neg { color: var(--red); }
+  .hero-breakdown { display: flex; justify-content: center; gap: 24px; margin-top: 14px; flex-wrap: wrap; }
+  .hero-item { font-size: 0.85rem; color: var(--text2); }
+  .hero-item b { color: var(--text); font-weight: 800; }
+
+  /* Section cards */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .section-header h2 { font-size: 1.05rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .section-total { font-size: 1.1rem; font-weight: 900; }
+  .section-total.green { color: var(--green); }
+  .section-total.red { color: var(--red); }
+  .section-total.gold { color: var(--gold); }
+
+  .add-btn {
+    background: var(--accent); border: none; color: #fff;
+    padding: 8px 16px; border-radius: 10px; cursor: pointer;
+    font-family: 'Cairo', sans-serif; font-size: 0.82rem; font-weight: 700;
+    transition: all 0.2s;
+  }
+  .add-btn:hover { background: #5a7df0; }
+
+  /* Items */
+  .item-list { display: flex; flex-direction: column; gap: 8px; }
+  .item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .item-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 0.9rem; font-weight: 700; }
+  .item-meta { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+  .item-amount { font-weight: 900; font-size: 0.95rem; text-align: left; flex-shrink: 0; white-space: nowrap; }
+  .item-amount.green { color: var(--green); }
+  .item-amount.red { color: var(--red); }
+  .item-amount.gold { color: var(--gold); }
+  .item-delete {
+    background: none; border: none; cursor: pointer;
+    color: var(--text2); font-size: 1rem; padding: 4px;
+    transition: color 0.2s;
+  }
+  .item-delete:hover { color: var(--red); }
+  .empty-state { text-align: center; padding: 24px; color: var(--text2); font-size: 0.85rem; }
+
+  /* Tabs for debts */
+  .sub-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .sub-tab {
+    flex: 1; padding: 8px; border-radius: 10px;
+    border: 1px solid var(--border); background: none;
+    color: var(--text2); cursor: pointer;
+    font-family: 'Cairo', sans-serif; font-size: 0.82rem; font-weight: 700;
+    transition: all 0.2s; text-align: center;
+  }
+  .sub-tab.active.owed-to-me { background: rgba(61,214,140,0.15); border-color: var(--green); color: var(--green); }
+  .sub-tab.active.i-owe { background: rgba(245,108,108,0.15); border-color: var(--red); color: var(--red); }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 999; backdrop-filter: blur(4px); animation: fadeIn 0.2s ease;
+  }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 28px; width: 100%; max-width: 440px;
+    margin: 16px; animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal h3 { font-size: 1.1rem; font-weight: 900; margin-bottom: 20px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 0.8rem; color: var(--text2); font-weight: 600; margin-bottom: 6px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 11px 14px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+    font-family: 'Cairo', sans-serif; font-size: 0.9rem; direction: rtl;
+  }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+  .type-toggle { display: flex; gap: 8px; }
+  .type-btn {
+    flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border);
+    background: none; color: var(--text2); cursor: pointer;
+    font-family: 'Cairo', sans-serif; font-size: 0.85rem; font-weight: 700; transition: all 0.2s;
+  }
+  .type-btn.active.green { background: rgba(61,214,140,0.15); border-color: var(--green); color: var(--green); }
+  .type-btn.active.red { background: rgba(245,108,108,0.15); border-color: var(--red); color: var(--red); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-primary {
+    flex: 1; padding: 12px; background: var(--accent); border: none; border-radius: 10px;
+    color: #fff; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 0.95rem; cursor: pointer;
+  }
+  .btn-primary:hover { background: #5a7df0; }
+  .btn-secondary {
+    padding: 12px 20px; background: none; border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text2); font-family: 'Cairo', sans-serif;
+    font-weight: 700; font-size: 0.95rem; cursor: pointer;
+  }
+  .btn-secondary:hover { border-color: var(--text2); color: var(--text); }
+
+  /* gold helper */
+  .emoji-btn {
+    width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface2); cursor: pointer; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .emoji-btn:hover, .emoji-btn.selected { border-color: var(--accent); background: rgba(108,142,245,0.15); }
+  .gold-calc { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
+
+  /* nav back */
+  .back-link { color: var(--text2); font-size: 0.85rem; cursor: pointer; text-decoration: none; }
+  .back-link:hover { color: var(--accent); }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 700px) {
+    .hero-value { font-size: 2rem; }
+    .hero-breakdown { gap: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>صافي ثروتي <span>💎</span></h1>
+</div>
+
+<div class="container">
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-label">صافي الثروة</div>
+    <div class="hero-value" id="netWorthValue">0 د.أ</div>
+    <div class="hero-breakdown">
+      <div class="hero-item">الممتلكات: <b id="totalAssets" style="color:var(--green)">0</b></div>
+      <div class="hero-item">لي عند الناس: <b id="totalOwedToMe" style="color:var(--accent)">0</b></div>
+      <div class="hero-item">عليّ للناس: <b id="totalIOwe" style="color:var(--red)">0</b></div>
+    </div>
+  </div>
+
+  <!-- Assets Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2>💰 الممتلكات (وديعة، ذهب، نقد...)</h2>
+      <button class="add-btn" onclick="openAssetModal()">＋ إضافة</button>
+    </div>
+    <div class="item-list" id="assetsList"></div>
+    <div style="margin-top:12px;display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:12px">
+      <span style="color:var(--text2);font-size:0.85rem;font-weight:700">الإجمالي</span>
+      <span class="section-total green" id="assetsTotal">0 د.أ</span>
+    </div>
+  </div>
+
+  <!-- Debts Section -->
+  <div class="section">
+    <div class="section-header">
+      <h2>🤝 الديون</h2>
+      <button class="add-btn" onclick="openDebtModal()">＋ إضافة</button>
+    </div>
+    <div class="sub-tabs">
+      <button class="sub-tab active owed-to-me" id="tabOwedToMe" onclick="switchDebtTab('owed-to-me')">لي عند الناس</button>
+      <button class="sub-tab i-owe" id="tabIOwe" onclick="switchDebtTab('i-owe')">عليّ للناس</button>
+    </div>
+    <div class="item-list" id="debtsList"></div>
+    <div style="margin-top:12px;display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:12px">
+      <span style="color:var(--text2);font-size:0.85rem;font-weight:700" id="debtsTotalLabel">إجمالي ما لي عند الناس</span>
+      <span class="section-total" id="debtsTotal">0 د.أ</span>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:8px">
+    <span class="back-link" onclick="exportData()">📤 تصدير نسخة احتياطية (JSON)</span>
+    &nbsp;|&nbsp;
+    <span class="back-link" onclick="document.getElementById('importFile').click()">📥 استيراد</span>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+</div>
+
+<!-- Asset Modal -->
+<div class="modal-overlay" id="assetModal" style="display:none" onclick="closeOnOverlay(event,'assetModal')">
+  <div class="modal">
+    <h3>إضافة ممتلك</h3>
+    <div class="form-group">
+      <label>النوع</label>
+      <select id="assetType" onchange="updateAssetForm()">
+        <option value="cash">💵 نقد / وديعة بنكية</option>
+        <option value="gold">🥇 ذهب (بالجرام)</option>
+        <option value="other">📦 ممتلك آخر (عقار، سيارة...)</option>
+        <option value="__new__">➕ إضافة نوع جديد...</option>
+      </select>
+    </div>
+    <div class="form-group" id="newAssetTypeGroup" style="display:none">
+      <label>اسم النوع الجديد</label>
+      <input type="text" id="newAssetTypeName" placeholder="مثال: أسهم">
+      <div style="margin-top:8px;font-size:0.78rem;color:var(--text2)">اختاري رمزاً (إيموجي):</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px" id="assetEmojiPicker">
+        <button type="button" class="emoji-btn" onclick="pickAssetEmoji('📈')">📈</button>
+        <button type="button" class="emoji-btn" onclick="pickAssetEmoji('🏢')">🏢</button>
+        <button type="button" class="emoji-btn" onclick="pickAssetEmoji('🚗')">🚗</button>
+        <button type="button" class="emoji-btn" onclick="pickAssetEmoji('💎')">💎</button>
+        <button type="button" class="emoji-btn" onclick="pickAssetEmoji('🏦')">🏦</button>
+        <button type="button" class="emoji-btn" onclick="pickAssetEmoji('🪙')">🪙</button>
+        <button type="button" class="emoji-btn" onclick="pickAssetEmoji('🏠')">🏠</button>
+        <button type="button" class="emoji-btn" onclick="pickAssetEmoji('💼')">💼</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>الاسم / الوصف</label>
+      <input type="text" id="assetName" placeholder="مثال: وديعة بنك الإسكان">
+    </div>
+    <div id="goldFields" style="display:none">
+      <div class="form-group">
+        <label>الوزن (جرام)</label>
+        <input type="number" id="goldGrams" placeholder="مثال: 20" oninput="calcGoldValue()">
+      </div>
+      <div class="form-group">
+        <label>سعر الجرام الحالي (دينار)</label>
+        <input type="number" id="goldPricePerGram" placeholder="مثال: 65" oninput="calcGoldValue()">
+        <div class="gold-calc" id="goldCalcResult"></div>
+      </div>
+    </div>
+    <div class="form-group" id="cashAmountGroup">
+      <label>القيمة (دينار)</label>
+      <input type="number" id="assetAmount" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>التاريخ</label>
+      <input type="date" id="assetDate">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('assetModal')">إلغاء</button>
+      <button class="btn-primary" onclick="addAsset()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Debt Modal -->
+<div class="modal-overlay" id="debtModal" style="display:none" onclick="closeOnOverlay(event,'debtModal')">
+  <div class="modal">
+    <h3>إضافة دين</h3>
+    <div class="form-group">
+      <label>النوع</label>
+      <div class="type-toggle">
+        <button class="type-btn active green" id="debtTypeOwed" onclick="setDebtType('owed-to-me')">🟢 لي عند شخص</button>
+        <button class="type-btn red" id="debtTypeIOwe" onclick="setDebtType('i-owe')">🔴 عليّ لشخص</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>اسم الشخص</label>
+      <input type="text" id="debtPerson" placeholder="مثال: أحمد">
+    </div>
+    <div class="form-group">
+      <label>المبلغ (دينار)</label>
+      <input type="number" id="debtAmount" placeholder="0.00">
+    </div>
+    <div class="form-group">
+      <label>التاريخ</label>
+      <input type="date" id="debtDate">
+    </div>
+    <div class="form-group">
+      <label>ملاحظة (اختياري)</label>
+      <input type="text" id="debtNote" placeholder="مثال: قرض لشراء سيارة">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('debtModal')">إلغاء</button>
+      <button class="btn-primary" onclick="addDebt()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentDebtTab = 'owed-to-me';
+let currentDebtType = 'owed-to-me';
+
+function getAssets() { return JSON.parse(localStorage.getItem('nw_assets') || '[]'); }
+function saveAssets(d) { localStorage.setItem('nw_assets', JSON.stringify(d)); }
+function getDebts() { return JSON.parse(localStorage.getItem('nw_debts') || '[]'); }
+function saveDebts(d) { localStorage.setItem('nw_debts', JSON.stringify(d)); }
+
+function fmt(n) {
+  const sign = n < 0 ? '-' : '';
+  return sign + Math.abs(n).toLocaleString('ar-JO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+const ASSET_ICONS_BASE = { cash: ['💵', '#3dd68c'], gold: ['🥇', '#facc15'], other: ['📦', '#6c8ef5'] };
+const EXTRA_ASSET_COLORS = ['#e879f9','#34d399','#fb7185','#60a5fa','#fbbf24','#a3e635','#2dd4bf','#c084fc'];
+let selectedAssetEmoji = '📈';
+
+function getCustomAssetTypes() { return JSON.parse(localStorage.getItem('nw_customTypes') || '[]'); }
+function saveCustomAssetTypes(d) { localStorage.setItem('nw_customTypes', JSON.stringify(d)); }
+function getAssetIcons() {
+  const icons = { ...ASSET_ICONS_BASE };
+  getCustomAssetTypes().forEach((t, i) => { icons[t.id] = [t.emoji, t.color || EXTRA_ASSET_COLORS[i % EXTRA_ASSET_COLORS.length]]; });
+  return icons;
+}
+
+function fmtDateLocal(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function formatDisplayDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('ar-JO', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function render() {
+  // Assets
+  const assets = getAssets();
+  const assetsTotal = assets.reduce((s, a) => s + a.value, 0);
+  const list = document.getElementById('assetsList');
+  if (!assets.length) {
+    list.innerHTML = '<div class="empty-state">لا توجد ممتلكات مضافة بعد</div>';
+  } else {
+    list.innerHTML = assets.map(a => {
+      const icons = getAssetIcons();
+      const [icon, color] = icons[a.type] || icons.other;
+      const goldMeta = a.type === 'gold' ? `${a.grams} جم × ${fmt(a.pricePerGram)} د.أ/جم · ` : '';
+      const meta = goldMeta + formatDisplayDate(a.date);
+      return `
+      <div class="item">
+        <div class="item-icon" style="background:${color}22;color:${color}">${icon}</div>
+        <div class="item-info">
+          <div class="item-name">${a.name}</div>
+          <div class="item-meta">${meta}</div>
+        </div>
+        <div class="item-amount green">${fmt(a.value)} د.أ</div>
+        <button class="item-delete" onclick="deleteAsset('${a.id}')">🗑</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('assetsTotal').textContent = fmt(assetsTotal) + ' د.أ';
+
+  // Debts
+  const debts = getDebts();
+  const filtered = debts.filter(d => d.type === currentDebtTab);
+  const owedToMeTotal = debts.filter(d => d.type === 'owed-to-me').reduce((s, d) => s + d.amount, 0);
+  const iOweTotal = debts.filter(d => d.type === 'i-owe').reduce((s, d) => s + d.amount, 0);
+
+  const dlist = document.getElementById('debtsList');
+  if (!filtered.length) {
+    dlist.innerHTML = `<div class="empty-state">${currentDebtTab === 'owed-to-me' ? 'لا يوجد لك ديون عند الناس' : 'لا يوجد عليك ديون'}</div>`;
+  } else {
+    const color = currentDebtTab === 'owed-to-me' ? '#3dd68c' : '#f56c6c';
+    const icon = currentDebtTab === 'owed-to-me' ? '🟢' : '🔴';
+    dlist.innerHTML = filtered.map(d => `
+      <div class="item">
+        <div class="item-icon" style="background:${color}22;color:${color}">${icon}</div>
+        <div class="item-info">
+          <div class="item-name">${d.person}</div>
+          <div class="item-meta">${d.note ? d.note + ' · ' : ''}${formatDisplayDate(d.date)}</div>
+        </div>
+        <div class="item-amount ${currentDebtTab === 'owed-to-me' ? 'green' : 'red'}">${fmt(d.amount)} د.أ</div>
+        <button class="item-delete" onclick="deleteDebt('${d.id}')">🗑</button>
+      </div>`).join('');
+  }
+
+  document.getElementById('debtsTotalLabel').textContent = currentDebtTab === 'owed-to-me' ? 'إجمالي ما لي عند الناس' : 'إجمالي ما عليّ للناس';
+  const dTotal = currentDebtTab === 'owed-to-me' ? owedToMeTotal : iOweTotal;
+  const dTotalEl = document.getElementById('debtsTotal');
+  dTotalEl.textContent = fmt(dTotal) + ' د.أ';
+  dTotalEl.className = 'section-total ' + (currentDebtTab === 'owed-to-me' ? 'green' : 'red');
+
+  // Net worth
+  const netWorth = assetsTotal + owedToMeTotal - iOweTotal;
+  const nwEl = document.getElementById('netWorthValue');
+  nwEl.textContent = fmt(netWorth) + ' د.أ';
+  nwEl.className = 'hero-value ' + (netWorth >= 0 ? 'pos' : 'neg');
+  document.getElementById('totalAssets').textContent = fmt(assetsTotal);
+  document.getElementById('totalOwedToMe').textContent = fmt(owedToMeTotal);
+  document.getElementById('totalIOwe').textContent = fmt(iOweTotal);
+}
+
+function switchDebtTab(tab) {
+  currentDebtTab = tab;
+  document.getElementById('tabOwedToMe').classList.toggle('active', tab === 'owed-to-me');
+  document.getElementById('tabIOwe').classList.toggle('active', tab === 'i-owe');
+  render();
+}
+
+// Asset modal
+function openAssetModal() {
+  document.getElementById('assetName').value = '';
+  document.getElementById('assetAmount').value = '';
+  document.getElementById('goldGrams').value = '';
+  document.getElementById('goldPricePerGram').value = '';
+  document.getElementById('goldCalcResult').textContent = '';
+  document.getElementById('newAssetTypeGroup').style.display = 'none';
+  document.getElementById('newAssetTypeName').value = '';
+  document.getElementById('assetDate').value = fmtDateLocal(new Date());
+  populateAssetTypes();
+  document.getElementById('assetType').value = 'cash';
+  updateAssetForm();
+  document.getElementById('assetModal').style.display = 'flex';
+}
+function populateAssetTypes() {
+  const sel = document.getElementById('assetType');
+  let html = `
+    <option value="cash">💵 نقد / وديعة بنكية</option>
+    <option value="gold">🥇 ذهب (بالجرام)</option>
+    <option value="other">📦 ممتلك آخر (عقار، سيارة...)</option>`;
+  html += getCustomAssetTypes().map(t => `<option value="${t.id}">${t.emoji} ${t.name}</option>`).join('');
+  html += `<option value="__new__">➕ إضافة نوع جديد...</option>`;
+  sel.innerHTML = html;
+}
+function pickAssetEmoji(emoji) {
+  selectedAssetEmoji = emoji;
+  document.querySelectorAll('#assetEmojiPicker .emoji-btn').forEach(b => b.classList.toggle('selected', b.textContent.trim() === emoji));
+}
+function updateAssetForm() {
+  const type = document.getElementById('assetType').value;
+  document.getElementById('goldFields').style.display = type === 'gold' ? 'block' : 'none';
+  document.getElementById('cashAmountGroup').style.display = type === 'gold' ? 'none' : 'block';
+  const newGroup = document.getElementById('newAssetTypeGroup');
+  if (type === '__new__') {
+    newGroup.style.display = 'block';
+    selectedAssetEmoji = '📈';
+    document.querySelectorAll('#assetEmojiPicker .emoji-btn').forEach((b,i) => b.classList.toggle('selected', i === 0));
+  } else {
+    newGroup.style.display = 'none';
+  }
+}
+function calcGoldValue() {
+  const grams = parseFloat(document.getElementById('goldGrams').value) || 0;
+  const price = parseFloat(document.getElementById('goldPricePerGram').value) || 0;
+  const total = grams * price;
+  document.getElementById('goldCalcResult').textContent = total > 0 ? `القيمة التقديرية: ${fmt(total)} د.أ` : '';
+}
+function addAsset() {
+  let type = document.getElementById('assetType').value;
+  const name = document.getElementById('assetName').value.trim();
+  const date = document.getElementById('assetDate').value || fmtDateLocal(new Date());
+  if (!name) { alert('يرجى كتابة الاسم/الوصف'); return; }
+
+  if (type === '__new__') {
+    const newName = document.getElementById('newAssetTypeName').value.trim();
+    if (!newName) { alert('يرجى كتابة اسم النوع الجديد'); return; }
+    const customTypes = getCustomAssetTypes();
+    const id = 'custom_' + newName.replace(/\s+/g, '_');
+    if (!customTypes.find(t => t.id === id)) {
+      customTypes.push({ id, name: newName, emoji: selectedAssetEmoji, color: EXTRA_ASSET_COLORS[customTypes.length % EXTRA_ASSET_COLORS.length] });
+      saveCustomAssetTypes(customTypes);
+    }
+    type = id;
+  }
+
+  let value, extra = {};
+  if (type === 'gold') {
+    const grams = parseFloat(document.getElementById('goldGrams').value);
+    const price = parseFloat(document.getElementById('goldPricePerGram').value);
+    if (!grams || !price) { alert('يرجى إدخال الوزن والسعر'); return; }
+    value = grams * price;
+    extra = { grams, pricePerGram: price };
+  } else {
+    value = parseFloat(document.getElementById('assetAmount').value);
+    if (isNaN(value) || value < 0) { alert('يرجى إدخال قيمة صحيحة'); return; }
+  }
+
+  const assets = getAssets();
+  assets.push({ id: Date.now().toString(), type, name, value, date, ...extra });
+  saveAssets(assets);
+  closeModal('assetModal');
+  render();
+}
+function deleteAsset(id) {
+  if (!confirm('حذف هذا الممتلك؟')) return;
+  saveAssets(getAssets().filter(a => a.id !== id));
+  render();
+}
+
+// Debt modal
+function openDebtModal() {
+  document.getElementById('debtPerson').value = '';
+  document.getElementById('debtAmount').value = '';
+  document.getElementById('debtNote').value = '';
+  setDebtType(currentDebtTab);
+  document.getElementById('debtModal').style.display = 'flex';
+}
+function setDebtType(type) {
+  currentDebtType = type;
+  document.getElementById('debtTypeOwed').className = 'type-btn' + (type === 'owed-to-me' ? ' active green' : '');
+  document.getElementById('debtTypeIOwe').className = 'type-btn' + (type === 'i-owe' ? ' active red' : '');
+}
+function addDebt() {
+  const person = document.getElementById('debtPerson').value.trim();
+  const amount = parseFloat(document.getElementById('debtAmount').value);
+  const note = document.getElementById('debtNote').value.trim();
+  if (!person || isNaN(amount) || amount <= 0) { alert('يرجى ملء الحقول المطلوبة'); return; }
+
+  const debts = getDebts();
+  debts.push({ id: Date.now().toString(), type: currentDebtType, person, amount, note, date: new Date().toISOString() });
+  saveDebts(debts);
+  closeModal('debtModal');
+  currentDebtTab = currentDebtType;
+  switchDebtTab(currentDebtTab);
+}
+function deleteDebt(id) {
+  if (!confirm('حذف هذا السجل؟')) return;
+  saveDebts(getDebts().filter(d => d.id !== id));
+  render();
+}
+
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function closeOnOverlay(e, id) { if (e.target.classList.contains('modal-overlay')) closeModal(id); }
+
+// Export / Import
+function exportData() {
+  const data = { assets: getAssets(), debts: getDebts(), exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `صافي_ثروتي_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+}
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const incoming = JSON.parse(e.target.result);
+      const assets = getAssets();
+      const debts = getDebts();
+      const existingAssetIds = new Set(assets.map(a => a.id));
+      const existingDebtIds = new Set(debts.map(d => d.id));
+      let added = 0;
+      (incoming.assets || []).forEach(a => { if (!existingAssetIds.has(a.id)) { assets.push(a); added++; } });
+      (incoming.debts || []).forEach(d => { if (!existingDebtIds.has(d.id)) { debts.push(d); added++; } });
+      saveAssets(assets);
+      saveDebts(debts);
+      alert(`تم الاستيراد ✅ — تمت إضافة ${added} عنصر جديد`);
+      render();
+    } catch (err) {
+      alert('ملف غير صالح');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal('assetModal'); closeModal('debtModal'); }
+});
+
+render();
+</script>
+</body>
+</html>
